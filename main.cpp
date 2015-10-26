@@ -37,28 +37,35 @@ void write_body(const std::string& filename, const std::string& bodyA) {
 }
 
 int main() {
-    std::string symbol = "XOM";
+    std::string symbolstring;
     std::string startdate;
     std::string enddate;
-    std::cout << "enter a Yahoo! Finance symbol (example: XOM)\n";
-    std::cin >> symbol;
+    std::cout << "enter a Yahoo! Finance symbol(s) (example: XOM,CVX)\n";
+    std::cin >> symbolstring;
     std::cout << "enter a start date (example: 01/01/2010) \n";
     std::cin >> startdate;
     std::cout << "enter an end date (example: 01/01/2011)\n";
     std::cin >> enddate;
-    std::string url = build_request(symbol, startdate, enddate);
-    http::client::request request(url);
-    request << ::boost::network::header("Connection", "close");
-    http::client::options client_options;
-    client_options.follow_redirects(true);
-    http::client client(client_options);
-    http::client::response response = client.get(request);
-    int response_code = status(response);
-    if(response_code != 200) {
-        throw new runtime_error("request failed");
+    if(symbolstring.empty() || startdate.empty() || enddate.empty()) {
+        throw new runtime_error("invalid input");
     }
-    std::string r =  body(response);
-    std::string output_file = symbol + "_table.csv";
-    write_body(output_file, r);
+    std::vector<std::string> symbols;
+    boost::split(symbols, symbolstring, boost::is_any_of(","));
+    for(auto& symbol : symbols) {
+        std::string url = build_request(symbol, startdate, enddate);
+        http::client::request request(url);
+        request << ::boost::network::header("Connection", "close");
+        http::client::options client_options;
+        client_options.follow_redirects(true);
+        http::client client(client_options);
+        http::client::response response = client.get(request);
+        int response_code = status(response);
+        if(response_code != 200) {
+            throw new runtime_error("request failed");
+        }
+        std::string r =  body(response);
+        std::string output_file = symbol + "_table.csv";
+        write_body(output_file, r);
+    }
     return 0;
 }
