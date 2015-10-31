@@ -5,9 +5,7 @@
 using namespace std;
 using namespace boost::network;
 
-
 std::string build_request(std::string& symbol, std::string& startDateString, std::string& endDateString) {
-
     int startmonth, startday, startyear;
     if(sscanf(startDateString.c_str(), "%d/%d/%d", &startmonth, &startday, &startyear) != 3) {
         throw new runtime_error("sscanf fail");
